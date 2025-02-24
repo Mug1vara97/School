@@ -1,0 +1,139 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0" version="26.0.13">
+  <diagram name="Страница — 1" id="pWDM5W7ZeC9cLlUkJ8SA">
+    <mxGraphModel dx="704" dy="773" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Qjj-7y--akDQH315-fru-1" value="Учитель" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="20" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-2" value="Учитель" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="440" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-4" value="" style="endArrow=none;dashed=1;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="Qjj-7y--akDQH315-fru-16" target="Qjj-7y--akDQH315-fru-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="120" as="sourcePoint" />
+            <mxPoint x="360" y="70" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-7" value="Система" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="40" width="90" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-8" value="Система" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="440" width="90" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-9" value="" style="endArrow=none;dashed=1;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="Qjj-7y--akDQH315-fru-14" target="Qjj-7y--akDQH315-fru-7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="220" as="sourcePoint" />
+            <mxPoint x="360" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-13" value="Авторизация" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1" source="Qjj-7y--akDQH315-fru-16" target="Qjj-7y--akDQH315-fru-14">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="90" y="160" as="sourcePoint" />
+            <mxPoint x="200" y="220" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="170" y="150" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-15" value="" style="endArrow=none;dashed=1;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="Qjj-7y--akDQH315-fru-8" target="Qjj-7y--akDQH315-fru-14">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="355" y="440" as="sourcePoint" />
+            <mxPoint x="355" y="80" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-14" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="350" y="120" width="10" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-17" value="" style="endArrow=none;dashed=1;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="Qjj-7y--akDQH315-fru-2" target="Qjj-7y--akDQH315-fru-16">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="95" y="440" as="sourcePoint" />
+            <mxPoint x="95" y="80" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-16" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="90" y="120" width="10" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-23" value="Успешная Авторизация" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;" edge="1" source="Qjj-7y--akDQH315-fru-14" parent="1" target="Qjj-7y--akDQH315-fru-16">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="285" as="targetPoint" />
+            <mxPoint x="240" y="340" as="sourcePoint" />
+            <Array as="points">
+              <mxPoint x="290" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-24" value="Выбор предмета и класса" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="100" y="250" as="sourcePoint" />
+            <mxPoint x="350" y="250" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="170" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-25" value="Ввод оценки для ученика" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="100" y="300" as="targetPoint" />
+            <mxPoint x="350" y="300" as="sourcePoint" />
+            <Array as="points">
+              <mxPoint x="290" y="300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-27" value="БД Учебный процесс" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+          <mxGeometry x="510" y="440" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-28" value="БД Учебный процесс" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+          <mxGeometry x="510" y="20" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-29" value="" style="endArrow=none;dashed=1;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="Qjj-7y--akDQH315-fru-30" target="Qjj-7y--akDQH315-fru-28">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="320" as="sourcePoint" />
+            <mxPoint x="360" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-31" value="" style="endArrow=none;dashed=1;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="Qjj-7y--akDQH315-fru-27" target="Qjj-7y--akDQH315-fru-30">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="540" y="440" as="sourcePoint" />
+            <mxPoint x="540" y="100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-30" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="535" y="140" width="10" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-32" value="Сохранение Оценки" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="360" y="320" as="sourcePoint" />
+            <mxPoint x="535" y="320" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="390" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-33" value="Подтверждение Сохранения" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="360" y="360" as="targetPoint" />
+            <mxPoint x="535" y="360" as="sourcePoint" />
+            <Array as="points">
+              <mxPoint x="475" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Qjj-7y--akDQH315-fru-34" value="Оценка Успешно Сохранена" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;" edge="1" parent="1" target="Qjj-7y--akDQH315-fru-16">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="175" y="380" as="targetPoint" />
+            <mxPoint x="350" y="380" as="sourcePoint" />
+            <Array as="points">
+              <mxPoint x="290" y="380" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
