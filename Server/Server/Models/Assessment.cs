@@ -3,27 +3,27 @@ using System.Collections.Generic;
 
 namespace Server.Models;
 
-public partial class Lesson
+public partial class Assessment
 {
     public int Id { get; set; }
 
     public int ClassId { get; set; }
 
+    public int LessonId { get; set; }
+
     public int SubjectId { get; set; }
 
     public int TeacherId { get; set; }
 
-    public DateTime Date { get; set; }
-
-    public int Day { get; set; }
+    public string Type { get; set; } = null!;
 
     public string? Topic { get; set; }
 
-    public string? Homework { get; set; }
-
-    public virtual ICollection<Assessment> Assessments { get; set; } = new List<Assessment>();
+    public virtual ICollection<AssessmentGrade> AssessmentGrades { get; set; } = new List<AssessmentGrade>();
 
     public virtual Class Class { get; set; } = null!;
+
+    public virtual Lesson Lesson { get; set; } = null!;
 
     public virtual Subject Subject { get; set; } = null!;
 

@@ -11,5 +11,11 @@
 ![alt text](images/image-2.png)
 ### Панель Преподователя
 ![alt text](images/image-3.png)
+![alt text](images/image-8.png)
 ### Панель Ученика
 ![alt text](images/image-4.png)
+![alt text](images/image-5.png)
+![alt text](images/image-6.png)
+![alt text](images/image-7.png)
+### Так выглядят все окна с настройками и созданием
+![alt text](images/image-9.png)

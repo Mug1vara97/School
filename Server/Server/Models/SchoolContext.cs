@@ -15,6 +15,10 @@ public partial class SchoolContext : DbContext
     {
     }
 
+    public virtual DbSet<Assessment> Assessments { get; set; }
+
+    public virtual DbSet<AssessmentGrade> AssessmentGrades { get; set; }
+
     public virtual DbSet<Class> Classes { get; set; }
 
     public virtual DbSet<Grade> Grades { get; set; }
@@ -33,6 +37,61 @@ public partial class SchoolContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Assessment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("assessments_pkey");
+
+            entity.ToTable("assessments");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.LessonId).HasColumnName("lesson_id");
+            entity.Property(e => e.SubjectId).HasColumnName("subject_id");
+            entity.Property(e => e.TeacherId).HasColumnName("teacher_id");
+            entity.Property(e => e.Topic)
+                .HasMaxLength(255)
+                .HasColumnName("topic");
+            entity.Property(e => e.Type)
+                .HasMaxLength(50)
+                .HasColumnName("type");
+
+            entity.HasOne(d => d.Class).WithMany(p => p.Assessments)
+                .HasForeignKey(d => d.ClassId)
+                .HasConstraintName("assessments_class_id_fkey");
+
+            entity.HasOne(d => d.Lesson).WithMany(p => p.Assessments)
+                .HasForeignKey(d => d.LessonId)
+                .HasConstraintName("assessments_lesson_id_fkey");
+
+            entity.HasOne(d => d.Subject).WithMany(p => p.Assessments)
+                .HasForeignKey(d => d.SubjectId)
+                .HasConstraintName("assessments_subject_id_fkey");
+
+            entity.HasOne(d => d.Teacher).WithMany(p => p.Assessments)
+                .HasForeignKey(d => d.TeacherId)
+                .HasConstraintName("assessments_teacher_id_fkey");
+        });
+
+        modelBuilder.Entity<AssessmentGrade>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("assessment_grades_pkey");
+
+            entity.ToTable("assessment_grades");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.AssessmentId).HasColumnName("assessment_id");
+            entity.Property(e => e.Grade).HasColumnName("grade");
+            entity.Property(e => e.StudentId).HasColumnName("student_id");
+
+            entity.HasOne(d => d.Assessment).WithMany(p => p.AssessmentGrades)
+                .HasForeignKey(d => d.AssessmentId)
+                .HasConstraintName("assessment_grades_assessment_id_fkey");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.AssessmentGrades)
+                .HasForeignKey(d => d.StudentId)
+                .HasConstraintName("assessment_grades_student_id_fkey");
+        });
+
         modelBuilder.Entity<Class>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("classes_pkey");

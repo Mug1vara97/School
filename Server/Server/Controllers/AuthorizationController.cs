@@ -30,54 +30,6 @@ namespace School.Controllers
             return Ok(new { Role = user.Role, UserId = user.Id });
         }
 
-        [HttpGet("teachers")]
-        public IActionResult GetTeachers()
-        {
-            var teachers = _context.Users
-                .Where(u => u.Role == "teacher")
-                .Select(u => new
-                {
-                    u.Id,
-                    u.FirstName,
-                    u.LastName,
-                    u.Login
-                })
-                .ToList();
-
-            return Ok(teachers);
-        }
-
-        [HttpGet("students")]
-        public IActionResult GetStudents()
-        {
-            var students = _context.Users
-                .Where(u => u.Role == "student")
-                .Select(u => new
-                {
-                    u.Id,
-                    u.FirstName,
-                    u.LastName,
-                    u.Login
-                })
-                .ToList();
-
-            return Ok(students);
-        }
-
-        [HttpGet("classes")]
-        public IActionResult GetClasses()
-        {
-            var classes = _context.Classes
-                .Select(c => new
-                {
-                    c.Id,
-                    c.Name,
-                    TeacherName = c.Teacher != null ? $"{c.Teacher.FirstName} {c.Teacher.LastName}" : "Не назначен"
-                })
-                .ToList();
-
-            return Ok(classes);
-        }
 
         [HttpGet("teacher/{teacherId}")]
         public IActionResult GetClassesByTeacher(int teacherId)
@@ -94,30 +46,7 @@ namespace School.Controllers
 
             return Ok(classes);
         }
-        [HttpPost("schedule")]
-        public async Task<IActionResult> SaveSchedule([FromBody] List<LessonDto> lessons)
-        {
-            try
-            {
-                var newLessons = lessons.Select(l => new Lesson
-                {
-                    ClassId = l.ClassId,
-                    SubjectId = l.SubjectId,
-                    TeacherId = l.TeacherId,
-                    Date = DateTime.ParseExact(l.Date, "yyyy-MM-dd H:mm", CultureInfo.InvariantCulture),
-                    Day = l.Day,
-                    Topic = l.Topic
-                });
-
-                await _context.Lessons.AddRangeAsync(newLessons);
-                await _context.SaveChangesAsync();
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Ошибка сохранения: {ex.Message}");
-            }
-        }
+        
 
         [HttpGet("subjects")]
         public IActionResult GetSubjects()
@@ -132,50 +61,64 @@ namespace School.Controllers
 
             return Ok(subjects);
         }
-        [HttpGet("schedule")]
-        public IActionResult GetSchedule(int classId, string startDate)
+       
+
+        [HttpGet("classes/{classId}/students")]
+        public IActionResult GetClassStudents(int classId)
         {
             try
             {
-                var startDateTime = DateTime.ParseExact(startDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                var endDateTime = startDateTime.AddDays(4);
-
-                var schedule = _context.Lessons
-                    .Where(l => l.ClassId == classId && l.Date >= startDateTime && l.Date < endDateTime)
-                    .Select(l => new
+                var students = _context.Students
+                    .Include(s => s.User)
+                    .Where(s => s.ClassId == classId)
+                    .Select(s => new
                     {
-                        Id = l.Id,
-                        SubjectId = l.SubjectId,
-                        TeacherId = l.TeacherId,
-                        Date = l.Date.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        Topic = l.Topic,
-                        l.Day,
-                        SubjectName = l.Subject.Name,
-                        TeacherName = l.Teacher.FirstName + " " + l.Teacher.LastName,
+                        s.Id,
+                        s.UserId,
+                        StudentName = $"{s.User.FirstName} {s.User.LastName}"
                     })
                     .ToList();
 
-                return Ok(schedule);
+                return Ok(students);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Ошибка загрузки расписания: {ex.Message}");
+                return StatusCode(500, $"Ошибка загрузки студентов: {ex.Message}");
             }
         }
 
-        [HttpGet("students/{studentId}")]
-        public IActionResult GetStudent(int studentId)
+       
+
+        [HttpPut("students/{studentId}/class")]
+        public async Task<IActionResult> AddStudentToClass(int studentId, [FromBody] AddStudentToClassRequest request)
         {
             try
             {
-                var student = _context.Students
-                    .Include(s => s.Class)
-                    .FirstOrDefault(s => s.UserId == studentId);
+                var user = await _context.Users.FindAsync(studentId);
+                if (user == null || user.Role != "student")
+                {
+                    return NotFound("Ученик не найден");
+                }
+
+                var student = await _context.Students
+                    .FirstOrDefaultAsync(s => s.UserId == studentId);
 
                 if (student == null)
                 {
-                    return NotFound("Студент не найден");
+                    student = new Student
+                    {
+                        UserId = studentId,
+                        ClassId = request.ClassId
+                    };
+                    _context.Students.Add(student);
                 }
+                else
+                {
+                    student.ClassId = request.ClassId;
+                    _context.Students.Update(student);
+                }
+
+                await _context.SaveChangesAsync();
 
                 return Ok(new
                 {
@@ -187,10 +130,31 @@ namespace School.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Ошибка загрузки данных студента: {ex.Message}");
+                return StatusCode(500, $"Ошибка при добавлении ученика в класс: {ex.Message}");
             }
         }
 
+        
+        [HttpGet("studentId/{userId}")]
+        public IActionResult GetStudentIdByUserId(int userId)
+        {
+            try
+            {
+                var student = _context.Students
+                    .FirstOrDefault(s => s.UserId == userId);
+
+                if (student == null)
+                {
+                    return NotFound("Студент не найден");
+                }
+
+                return Ok(student.Id);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ошибка при получении studentId: {ex.Message}");
+            }
+        }
     }
 
     public class LessonDto
@@ -206,5 +170,53 @@ namespace School.Controllers
     {
         public string Login { get; set; }
         public string Password { get; set; }
+    }
+
+    public class TeacherRequest
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Login { get; set; }
+    }
+
+    public class StudentRequest
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Login { get; set; }
+    }
+    public class ClassRequest
+    {
+        public string Name { get; set; }
+        public int? TeacherId { get; set; }
+    }
+    public class HomeworkRequest
+    {
+        public string Homework { get; set; }
+    }
+
+    public class GradeRequest
+    {
+        public int StudentId { get; set; }
+        public int LessonId { get; set; }
+        public int GradeValue { get; set; }
+        public string Comment { get; set; }
+    }
+    public class AddStudentToClassRequest
+    {
+        public int ClassId { get; set; }
+    }
+    public class CreateAssessmentRequest
+    {
+        public int LessonId { get; set; }
+        public string Type { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public DateTime Date { get; set; }
+    }
+    public class UpdateAssignmentRequest
+    {
+        public string Type { get; set; }
+        public string Topic { get; set; }
     }
 }

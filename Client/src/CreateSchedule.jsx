@@ -41,7 +41,7 @@ const CreateSchedule = ({ classes, teachers, subjects }) => {
   const fetchExistingSchedule = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5090/authorization/schedule?classId=${selectedClass}&startDate=${startDate}`
+        `http://localhost:5090/schedule/schedule?classId=${selectedClass}&startDate=${startDate}`
       );
       if (!response.ok) throw new Error("Ошибка при загрузке расписания");
       const data = await response.json();
@@ -73,6 +73,15 @@ const CreateSchedule = ({ classes, teachers, subjects }) => {
     }
   };
 
+  const addLesson = (date, time, lesson) => {
+    setSchedule((prevSchedule) => {
+      const newSchedule = { ...prevSchedule };
+      if (!newSchedule[date]) newSchedule[date] = {};
+      newSchedule[date][time] = lesson;
+      return newSchedule;
+    });
+  };
+
   const saveSchedule = async () => {
     try {
       setLoading(true);
@@ -81,7 +90,7 @@ const CreateSchedule = ({ classes, teachers, subjects }) => {
   
       daysOfWeek.forEach((day) => {
         const currentDate = new Date(startDate);
-        currentDate.setDate(currentDate.getDate() + (day - 1));
+        currentDate.setDate(currentDate.getDate() + (day));
         const currentDateISO = currentDate.toISOString().split('T')[0];
 
         Object.keys(schedule[currentDateISO] || {}).forEach((time) => {
@@ -104,7 +113,7 @@ const CreateSchedule = ({ classes, teachers, subjects }) => {
         });
       });
 
-      const response = await fetch("http://localhost:5090/authorization/schedule", {
+      const response = await fetch("http://localhost:5090/schedule/schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(lessons),
@@ -173,7 +182,7 @@ const CreateSchedule = ({ classes, teachers, subjects }) => {
                         date={dateKey}
                         time={time}
                         day={index + 1}
-                        addLesson={(day, time, lesson) => addLesson(day, time, lesson)}
+                        addLesson={addLesson}
                         teachers={teachers}
                         subjects={subjects}
                         existingLesson={existingLesson}

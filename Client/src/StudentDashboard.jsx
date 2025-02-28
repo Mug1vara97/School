@@ -4,29 +4,41 @@ import {
   Container,
   Typography,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Grid,
   CircularProgress,
   Alert,
+  Button,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
 } from "@mui/material";
 
 const StudentDashboard = () => {
   const [schedule, setSchedule] = useState([]);
+  const [grades, setGrades] = useState([]);
+  const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [viewMode, setViewMode] = useState("schedule");
   const navigate = useNavigate();
 
-  const studentId = localStorage.getItem("userId");
-
   useEffect(() => {
-    const fetchSchedule = async () => {
+    const fetchData = async () => {
       try {
+        const userId = localStorage.getItem("userId");
+
+        const studentIdResponse = await fetch(
+          `http://localhost:5090/authorization/studentId/${userId}`
+        );
+        if (!studentIdResponse.ok) throw new Error("Ошибка при загрузке studentId");
+
+        const studentIdData = await studentIdResponse.json();
+        const studentId = studentIdData;
+
         const studentResponse = await fetch(
-          `http://localhost:5090/authorization/students/${studentId}`
+          `http://localhost:5090/students/students/${userId}`
         );
         if (!studentResponse.ok) throw new Error("Ошибка при загрузке данных студента");
 
@@ -35,19 +47,30 @@ const StudentDashboard = () => {
 
         const today = new Date();
         const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay() + 1); 
-        const endOfWeek = new Date(today);
-        endOfWeek.setDate(today.getDate() + (5 - today.getDay()));
-
+        startOfWeek.setDate(today.getDate() - today.getDay() + 1);
         const startDate = startOfWeek.toISOString().split('T')[0];
-        const endDate = endOfWeek.toISOString().split('T')[0];
 
         const scheduleResponse = await fetch(
-          `http://localhost:5090/authorization/schedule?classId=${classId}&startDate=${startDate}&endDate=${endDate}`
+          `http://localhost:5090/schedule/schedules?classId=${classId}&startDate=${startDate}&userId=${userId}`
         );
+        if (!scheduleResponse.ok) throw new Error("Ошибка при загрузке расписания");
         const scheduleData = await scheduleResponse.json();
-        console.log(scheduleData);
         setSchedule(scheduleData);
+
+        const gradesResponse = await fetch(
+          `http://localhost:5090/grades/grade/${userId}`
+        );
+        if (!gradesResponse.ok) throw new Error("Ошибка при загрузке оценок");
+        const gradesData = await gradesResponse.json();
+        setGrades(gradesData);
+
+        const assignmentsResponse = await fetch(
+          `http://localhost:5090/assessments/assignments/student/${studentId}`
+        );
+        if (!assignmentsResponse.ok) throw new Error("Ошибка при загрузке заданий");
+        const assignmentsData = await assignmentsResponse.json();
+        setAssignments(assignmentsData);
+
       } catch (err) {
         setError(err.message);
       } finally {
@@ -55,21 +78,30 @@ const StudentDashboard = () => {
       }
     };
 
-    fetchSchedule();
-  }, [studentId]);
+    fetchData();
+  }, []);
 
-  if (loading) {
-    return <CircularProgress />;
-  }
+  const calculateFinalGrade = (subjectGrades) => {
+    if (!subjectGrades || subjectGrades.length === 0) return "Нет оценок";
+    const sum = subjectGrades.reduce((acc, grade) => acc + (grade.grade1 || 0), 0);
+    const average = sum / subjectGrades.length;
+    return isNaN(average) ? "Нет оценок" : Math.round(average);
+  };
 
-  if (error) {
-    return <Alert severity="error">{error}</Alert>;
-  }
+  const gradesBySubject = grades.reduce((acc, grade) => {
+    const subjectName = grade.subjectName;
+    if (!acc[subjectName]) acc[subjectName] = [];
+    acc[subjectName].push(grade);
+    return acc;
+  }, {});
+
+  const maxGradesCount = Math.max(...Object.values(gradesBySubject).map(grades => grades.length), 0);
 
   const daysOfWeek = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'];
   const numberOfPeriods = 5;
-
-  const timetable = Array.from({ length: daysOfWeek.length }, () => Array(numberOfPeriods).fill(null));
+  const timetable = Array.from({ length: daysOfWeek.length }, () => 
+    Array(numberOfPeriods).fill(null)
+  );
 
   schedule.forEach(lesson => {
     const lessonDate = new Date(lesson.date);
@@ -77,44 +109,139 @@ const StudentDashboard = () => {
     const periodIndex = lessonDate.getHours() - 9;
 
     if (dayIndex < daysOfWeek.length && periodIndex < numberOfPeriods && periodIndex >= 0) {
-      timetable[dayIndex][periodIndex] = `${lesson.subjectName} (${lesson.teacherName})`;
+      timetable[dayIndex][periodIndex] = {
+        subject: lesson.subjectName || "Нет урока",
+        teacher: lesson.teacherName || "Нет учителя",
+        topic: lesson.topic || "Нет темы",
+        homework: lesson.homework || "Нет домашнего задания",
+        grade: lesson.grade ? lesson.grade.grade1 : "Нет оценки",
+      };
     }
   });
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom align="center">
-        Расписание на текущую неделю
+        {viewMode === 'schedule' && "Расписание на текущую неделю"}
+        {viewMode === 'grades' && "Успеваемость"}
+        {viewMode === 'assignments' && "Задания"}
       </Typography>
 
-      <Paper elevation={3} sx={{ p: 2 }}>
-        <TableContainer>
+      <div style={{ marginBottom: 20 }}>
+        <Button
+          variant="contained"
+          color={viewMode === 'schedule' ? "primary" : "inherit"}
+          onClick={() => setViewMode('schedule')}
+          sx={{ mr: 2 }}
+        >
+          Расписание
+        </Button>
+        <Button
+          variant="contained"
+          color={viewMode === 'grades' ? "primary" : "inherit"}
+          onClick={() => setViewMode('grades')}
+          sx={{ mr: 2 }}
+        >
+          Успеваемость
+        </Button>
+        <Button
+          variant="contained"
+          color={viewMode === 'assignments' ? "primary" : "inherit"}
+          onClick={() => setViewMode('assignments')}
+        >
+          Задания
+        </Button>
+      </div>
+
+      {loading && <CircularProgress />}
+      {error && <Alert severity="error">{error}</Alert>}
+
+      {viewMode === 'schedule' && (
+        <Grid container spacing={3}>
+          {daysOfWeek.map((day, dayIndex) => (
+            <Grid item xs={12} key={day}>
+              <Paper elevation={3} sx={{ p: 2 }}>
+                <Typography variant="h5" gutterBottom>{day}</Typography>
+                <Grid container spacing={2} sx={{ mb: 2, fontWeight: 'bold' }}>
+                  <Grid item xs={2}><Typography>Время</Typography></Grid>
+                  <Grid item xs={2}><Typography>Предмет</Typography></Grid>
+                  <Grid item xs={2}><Typography>Учитель</Typography></Grid>
+                  <Grid item xs={3}><Typography>Домашнее задание</Typography></Grid>
+                  <Grid item xs={2}><Typography>Оценка</Typography></Grid>
+                </Grid>
+
+                {timetable[dayIndex].map((lesson, periodIndex) => (
+                  <Grid container spacing={2} key={`${dayIndex}-${periodIndex}`} sx={{ mb: 1 }}>
+                    <Grid item xs={2}>{`${9 + periodIndex}:00 - ${10 + periodIndex}:00`}</Grid>
+                    <Grid item xs={2}>{lesson?.subject || "Нет урока"}</Grid>
+                    <Grid item xs={2}>{lesson?.teacher || "Нет учителя"}</Grid>
+                    <Grid item xs={3}>{lesson?.homework || "Нет задания"}</Grid>
+                    <Grid item xs={2}>{lesson?.grade || "Нет оценки"}</Grid>
+                  </Grid>
+                ))}
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
+      {viewMode === 'grades' && (
+        <Paper elevation={3} sx={{ p: 2 }}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>День</TableCell>
-                <TableCell>1 Урок</TableCell>
-                <TableCell>2 Урок</TableCell>
-                <TableCell>3 Урок</TableCell>
-                <TableCell>4 Урок</TableCell>
-                <TableCell>5 Урок</TableCell>
+                <TableCell>Предмет</TableCell>
+                {Array.from({ length: maxGradesCount }, (_, i) => (
+                  <TableCell key={i}>Оценка {i + 1}</TableCell>
+                ))}
+                <TableCell>Итоговая</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {daysOfWeek.map((day, dayIndex) => (
-                <TableRow key={day}>
-                  <TableCell>{day}</TableCell>
-                  {timetable[dayIndex].map((lesson, periodIndex) => (
-                    <TableCell key={`${dayIndex}-${periodIndex}`}>
-                      {lesson ? lesson : "Нет урока"}
-                    </TableCell>
+              {Object.entries(gradesBySubject).map(([subject, grades]) => (
+                <TableRow key={subject}>
+                  <TableCell>{subject}</TableCell>
+                  {Array.from({ length: maxGradesCount }).map((_, i) => (
+                    <TableCell key={i}>{grades[i]?.grade1 || "—"}</TableCell>
                   ))}
+                  <TableCell>{calculateFinalGrade(grades)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </TableContainer>
-      </Paper>
+        </Paper>
+      )}
+
+      {viewMode === 'assignments' && (
+        <Paper elevation={3} sx={{ p: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Тип работы</TableCell>
+                <TableCell>Предмет</TableCell>
+                <TableCell>Тема</TableCell>
+                <TableCell>Дата</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {assignments.map(assignment => (
+                <TableRow key={assignment.id}>
+                  <TableCell>
+                    {assignment.type === 'independent' 
+                      ? 'Самостоятельная работа' 
+                      : 'Контрольная работа'}
+                  </TableCell>
+                  <TableCell>{assignment.subjectName}</TableCell>
+                  <TableCell>{assignment.topic}</TableCell>
+                  <TableCell>
+                    {new Date(assignment.date).toLocaleDateString('ru-RU')}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Paper>
+      )}
     </Container>
   );
 };

@@ -11,6 +11,8 @@ public partial class Class
 
     public int? TeacherId { get; set; }
 
+    public virtual ICollection<Assessment> Assessments { get; set; } = new List<Assessment>();
+
     public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
 
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
