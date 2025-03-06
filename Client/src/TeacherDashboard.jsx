@@ -20,6 +20,9 @@ import {
 } from "@mui/material";
 import HomeworkDialog from "./HomeworkDialog";
 import GradeDialog from "./GradeDialog";
+import GradesTable from "./GradesTable";
+import AssignmentsTable from "./AssignmentsTable"; 
+import SearchDialog from "./SearchDialog";
 
 const TeacherDashboard = () => {
   const [schedule, setSchedule] = useState([]);
@@ -35,7 +38,15 @@ const TeacherDashboard = () => {
   const [assignmentTitle, setAssignmentTitle] = useState("");
   const [assignmentDescription, setAssignmentDescription] = useState("");
   const [assignments, setAssignments] = useState([]);
+  const [allAssignments, setAllAssignments] = useState([]);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [showGradesTable, setShowGradesTable] = useState(false);
+  const [showAssignmentsTable, setShowAssignmentsTable] = useState(false);
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [minGrade, setMinGrade] = useState(0);
+  const [maxGrade, setMaxGrade] = useState(10);
+  const [selectedSubject, setSelectedSubject] = useState("");
   const navigate = useNavigate();
 
   const teacherId = localStorage.getItem("userId");
@@ -64,6 +75,14 @@ const TeacherDashboard = () => {
 
         const assignmentsData = await assignmentsResponse.json();
         setAssignments(assignmentsData);
+
+        const allAssignmentsResponse = await fetch(
+          `http://localhost:5090/assessments/assignments/teacher/${teacherId}`
+        );
+        if (!allAssignmentsResponse.ok) throw new Error("Ошибка при загрузке всех заданий");
+
+        const allAssignmentsData = await allAssignmentsResponse.json();
+        setAllAssignments(allAssignmentsData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -73,6 +92,7 @@ const TeacherDashboard = () => {
 
     fetchData();
   }, [teacherId]);
+
 
   const handleCreateAssignment = async () => {
     try {
@@ -339,88 +359,131 @@ const TeacherDashboard = () => {
     }
   });
 
+  const handleSearch = async (minGrade, maxGrade, selectedSubject) => {
+    try {
+      const response = await fetch(
+         `http://localhost:5090/teachers/students/search?minGrade=${minGrade}&maxGrade=${maxGrade}&subject=${selectedSubject}`
+      );
+      if (!response.ok) throw new Error("Ошибка при поиске учеников");
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom align="center">
-        Расписание на текущую неделю
+        {showGradesTable ? "Таблица оценок" : "Расписание на текущую неделю"}
       </Typography>
 
-      <Grid container spacing={3}>
-        {daysOfWeek.map((day, dayIndex) => (
-          <Grid item xs={12} key={day}>
-            <Paper elevation={3} sx={{ p: 2 }}>
-              <Typography variant="h5" gutterBottom>
-                {day}
-              </Typography>
+      <Button
+        onClick={() => setShowGradesTable(!showGradesTable)}
+        variant="contained"
+        sx={{ mb: 2, mr: 2 }}
+      >
+        {showGradesTable ? "Показать расписание" : "Показать оценки"}
+      </Button>
 
-              <Grid container spacing={2} sx={{ mb: 2, fontWeight: "bold" }}>
-                <Grid item xs={2}>
-                  <Typography variant="body1">Время</Typography>
-                </Grid>
-                <Grid item xs={2}>
-                  <Typography variant="body1">Предмет</Typography>
-                </Grid>
-                <Grid item xs={2}>
-                  <Typography variant="body1">Класс</Typography>
-                </Grid>
-                <Grid item xs={3}>
-                  <Typography variant="body1">Домашнее задание</Typography>
-                </Grid>
-                <Grid item xs={3}>
-                  <Typography variant="body1">Действия</Typography>
-                </Grid>
-              </Grid>
+      <Button
+        onClick={() => {
+          setShowAssignmentsTable(!showAssignmentsTable);
+          setShowGradesTable(false);
+        }}
+        variant="contained"
+        sx={{ mb: 2 }}
+      >
+        {showAssignmentsTable ? "Показать расписание" : "Показать задания"}
+      </Button>
 
-              {timetable[dayIndex].map((lesson, periodIndex) => (
-                <Grid container spacing={2} key={`${dayIndex}-${periodIndex}`} sx={{ mb: 1 }}>
+      <Button variant="contained" sx={{ mb: 2, ml: 2 }} onClick={() => setSearchDialogOpen(true)}>
+        Поиск учеников
+      </Button>
+
+      {showAssignmentsTable ? (
+        <AssignmentsTable assignments={allAssignments} teacherId={teacherId} />
+      ) : showGradesTable ? (
+        <GradesTable teacherId={teacherId} />
+      ) : (
+        <Grid container spacing={3}>
+          {daysOfWeek.map((day, dayIndex) => (
+            <Grid item xs={12} key={day}>
+              <Paper elevation={3} sx={{ p: 2 }}>
+                <Typography variant="h5" gutterBottom>
+                  {day}
+                </Typography>
+
+                <Grid container spacing={2} sx={{ mb: 2, fontWeight: "bold" }}>
                   <Grid item xs={2}>
-                    <Typography variant="body1">
-                      {`${9 + periodIndex}:00 - ${10 + periodIndex}:00`}
-                    </Typography>
+                    <Typography variant="body1">Время</Typography>
                   </Grid>
                   <Grid item xs={2}>
-                    <Typography variant="body1">
-                      {lesson ? lesson.subject : "Нет урока"}
-                    </Typography>
+                    <Typography variant="body1">Предмет</Typography>
                   </Grid>
                   <Grid item xs={2}>
-                    <Typography variant="body1">
-                      {lesson ? lesson.className : "Нет урока"}
-                    </Typography>
+                    <Typography variant="body1">Класс</Typography>
                   </Grid>
                   <Grid item xs={3}>
-                    <Typography variant="body1">
-                      {lesson ? lesson.homework : "Нет домашнего задания"}
-                    </Typography>
-                    {lesson?.assignment && (
-                    <div>
-                      <Typography variant="body2" color="textSecondary">
-                      {lesson.assignment.type === "independent" ? "Самостоятельная работа" : "Контрольная работа: "}
-                      {lesson.assignment.title}
-                      </Typography>
-                    </div>
-                  )}
+                    <Typography variant="body1">Домашнее задание</Typography>
                   </Grid>
-                   <Grid item xs={3}>
-                    <Button onClick={() => handleAddHomework(lesson)}>
-                      {lesson?.homework ? "Изменить ДЗ" : "Добавить ДЗ"}
-                    </Button>
-                    <Button onClick={() => handleGradeClick(lesson)}>
-                      Оценки
-                    </Button>
-                    <Button 
-                      onClick={() => handleAssignmentAction(lesson, lesson?.assignment)}
-                      variant={lesson?.assignment ? "outlined" : "contained"}
-                    >
-                      {lesson?.assignment ? "Редактировать задание" : "Назначить задание"}
-                    </Button>
+                  <Grid item xs={3}>
+                    <Typography variant="body1">Действия</Typography>
                   </Grid>
                 </Grid>
-              ))}
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
+
+                {timetable[dayIndex].map((lesson, periodIndex) => (
+                  <Grid container spacing={2} key={`${dayIndex}-${periodIndex}`} sx={{ mb: 1 }}>
+                    <Grid item xs={2}>
+                      <Typography variant="body1">
+                        {`${9 + periodIndex}:00 - ${10 + periodIndex}:00`}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={2}>
+                      <Typography variant="body1">
+                        {lesson ? lesson.subject : "Нет урока"}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={2}>
+                      <Typography variant="body1">
+                        {lesson ? lesson.className : "Нет урока"}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={3}>
+                      <Typography variant="body1">
+                        {lesson ? lesson.homework : "Нет домашнего задания"}
+                      </Typography>
+                      {lesson?.assignment && (
+                        <div>
+                          <Typography variant="body2" color="textSecondary">
+                            {lesson.assignment.type === "independent" ? "Самостоятельная работа" : "Контрольная работа: "}
+                            {lesson.assignment.title}
+                          </Typography>
+                        </div>
+                      )}
+                    </Grid>
+                    <Grid item xs={3}>
+                      <Button onClick={() => handleAddHomework(lesson)}>
+                        {lesson?.homework ? "Изменить ДЗ" : "Добавить ДЗ"}
+                      </Button>
+                      <Button onClick={() => handleGradeClick(lesson)}>
+                        Оценки
+                      </Button>
+                      <Button
+                        onClick={() => handleAssignmentAction(lesson, lesson?.assignment)}
+                        variant={lesson?.assignment ? "outlined" : "contained"}
+                      >
+                        {lesson?.assignment ? "Редактировать задание" : "Назначить задание"}
+                      </Button>
+                    </Grid>
+                  </Grid>
+                ))}
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
       <HomeworkDialog
         open={isHomeworkDialogOpen}
@@ -440,58 +503,65 @@ const TeacherDashboard = () => {
         selectedLesson={selectedLesson}
       />
 
-  <Dialog open={isAssignmentDialogOpen} onClose={() => setIsAssignmentDialogOpen(false)}>
-    <DialogTitle>
-      {selectedAssignment ? "Редактировать задание" : "Новое задание"}
-    </DialogTitle>
-    <DialogContent>
-      <FormControl fullWidth sx={{ mt: 2 }}>
-        <InputLabel>Тип задания</InputLabel>
-        <Select
-          value={assignmentType}
-          onChange={(e) => setAssignmentType(e.target.value)}
-        >
-          <MenuItem value="independent">Самостоятельная работа</MenuItem>
-          <MenuItem value="control">Контрольная работа</MenuItem>
-        </Select>
-    </FormControl>
+      <Dialog open={isAssignmentDialogOpen} onClose={() => setIsAssignmentDialogOpen(false)}>
+        <DialogTitle>
+          {selectedAssignment ? "Редактировать задание" : "Новое задание"}
+        </DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Тип задания</InputLabel>
+            <Select
+              value={assignmentType}
+              onChange={(e) => setAssignmentType(e.target.value)}
+            >
+              <MenuItem value="independent">Самостоятельная работа</MenuItem>
+              <MenuItem value="control">Контрольная работа</MenuItem>
+            </Select>
+          </FormControl>
 
-    <TextField
-      label="Название задания"
-      fullWidth
-      sx={{ mt: 2 }}
-      value={assignmentTitle}
-      onChange={(e) => setAssignmentTitle(e.target.value)}
-    />
+          <TextField
+            label="Название задания"
+            fullWidth
+            sx={{ mt: 2 }}
+            value={assignmentTitle}
+            onChange={(e) => setAssignmentTitle(e.target.value)}
+          />
 
-    <TextField
-      label="Описание задания"
-      multiline
-      rows={3}
-      fullWidth
-      sx={{ mt: 2 }}
-      value={assignmentDescription}
-      onChange={(e) => setAssignmentDescription(e.target.value)}
-    />
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setIsAssignmentDialogOpen(false)}>Отмена</Button>
-    {selectedAssignment && (
-      <Button 
-        onClick={() => handleDeleteAssignment(selectedAssignment.id)} 
-        color="error"
-      >
-        Удалить
-      </Button>
-    )}
-    <Button 
-      onClick={selectedAssignment ? handleUpdateAssignment : handleCreateAssignment}
-      variant="contained"
-    >
-      {selectedAssignment ? "Сохранить" : "Создать"}
-    </Button>
-  </DialogActions>
-</Dialog>
+          <TextField
+            label="Описание задания"
+            multiline
+            rows={3}
+            fullWidth
+            sx={{ mt: 2 }}
+            value={assignmentDescription}
+            onChange={(e) => setAssignmentDescription(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsAssignmentDialogOpen(false)}>Отмена</Button>
+          {selectedAssignment && (
+            <Button
+              onClick={() => handleDeleteAssignment(selectedAssignment.id)}
+              color="error"
+            >
+              Удалить
+            </Button>
+          )}
+          <Button
+            onClick={selectedAssignment ? handleUpdateAssignment : handleCreateAssignment}
+            variant="contained"
+          >
+            {selectedAssignment ? "Сохранить" : "Создать"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <SearchDialog
+        open={searchDialogOpen}
+        onClose={() => setSearchDialogOpen(false)}
+        onSearch={handleSearch}
+        searchResults={searchResults}
+      />
     </Container>
   );
 };

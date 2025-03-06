@@ -12,6 +12,8 @@
 ### Панель Преподователя
 ![alt text](images/image-3.png)
 ![alt text](images/image-8.png)
+![alt text](images/image-12.png)
+![alt text](images/image-13.png)
 ### Панель Ученика
 ![alt text](images/image-4.png)
 ![alt text](images/image-5.png)
@@ -19,3 +21,7 @@
 ![alt text](images/image-7.png)
 ### Так выглядят все окна с настройками и созданием
 ![alt text](images/image-9.png)
+### Окошко выставления оценок за занятие или за контрольные и самотоятельные работы
+![alt text](images/image-10.png)
+### Окно поиска учеников по средней оценке
+![alt text](images/image-11.png)

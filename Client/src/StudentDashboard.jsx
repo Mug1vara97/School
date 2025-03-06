@@ -19,6 +19,7 @@ const StudentDashboard = () => {
   const [schedule, setSchedule] = useState([]);
   const [grades, setGrades] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [assessmentGrades, setAssessmentGrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [viewMode, setViewMode] = useState("schedule");
@@ -71,6 +72,13 @@ const StudentDashboard = () => {
         const assignmentsData = await assignmentsResponse.json();
         setAssignments(assignmentsData);
 
+        const assessmentGradesResponse = await fetch(
+          `http://localhost:5090/students/students/${studentId}/assessment-grades`
+        );
+        if (!assessmentGradesResponse.ok) throw new Error("Ошибка при загрузке оценок заданий");
+        const assessmentGradesData = await assessmentGradesResponse.json();
+        setAssessmentGrades(assessmentGradesData);
+
       } catch (err) {
         setError(err.message);
       } finally {
@@ -83,12 +91,28 @@ const StudentDashboard = () => {
 
   const calculateFinalGrade = (subjectGrades) => {
     if (!subjectGrades || subjectGrades.length === 0) return "Нет оценок";
-    const sum = subjectGrades.reduce((acc, grade) => acc + (grade.grade1 || 0), 0);
+    
+    const sum = subjectGrades.reduce((acc, grade) => {
+      const value = Number(
+        grade.grade1? grade.grade1 : 
+        grade.grade ? grade.grade : 
+        0
+      );
+      return acc + value;
+    }, 0);
+  
     const average = sum / subjectGrades.length;
     return isNaN(average) ? "Нет оценок" : Math.round(average);
   };
 
   const gradesBySubject = grades.reduce((acc, grade) => {
+    const subjectName = grade.subjectName;
+    if (!acc[subjectName]) acc[subjectName] = [];
+    acc[subjectName].push(grade);
+    return acc;
+  }, {});
+
+  const assessmentGradesBySubject = assessmentGrades.reduce((acc, grade) => {
     const subjectName = grade.subjectName;
     if (!acc[subjectName]) acc[subjectName] = [];
     acc[subjectName].push(grade);
@@ -191,22 +215,45 @@ const StudentDashboard = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Предмет</TableCell>
-                {Array.from({ length: maxGradesCount }, (_, i) => (
-                  <TableCell key={i}>Оценка {i + 1}</TableCell>
-                ))}
+                <TableCell>Обычные оценки</TableCell>
+                <TableCell>Самостоятельные работы</TableCell>
+                <TableCell>Контрольные работы</TableCell>
                 <TableCell>Итоговая</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.entries(gradesBySubject).map(([subject, grades]) => (
-                <TableRow key={subject}>
-                  <TableCell>{subject}</TableCell>
-                  {Array.from({ length: maxGradesCount }).map((_, i) => (
-                    <TableCell key={i}>{grades[i]?.grade1 || "—"}</TableCell>
-                  ))}
-                  <TableCell>{calculateFinalGrade(grades)}</TableCell>
-                </TableRow>
-              ))}
+              {Object.entries(gradesBySubject).map(([subject, grades]) => {
+                const regularGrades = grades.filter(g => !g.type);
+                const independentGrades = assessmentGradesBySubject[subject]?.filter(ag => ag.assessmentType === "Самостоятельная работа") || [];
+                const controlGrades = assessmentGradesBySubject[subject]?.filter(ag => ag.assessmentType === "Контрольная работа") || [];
+
+                return (
+                  <TableRow key={subject}>
+                    <TableCell>{subject}</TableCell>
+                    <TableCell>
+                      {regularGrades.map((g, i) => (
+                        <span key={i}>{g.grade1} </span>
+                      ))}
+                      {regularGrades.length === 0 && "—"}
+                    </TableCell>
+                    <TableCell>
+                      {independentGrades.map((g, i) => (
+                        <span key={i}>{g.grade} </span>
+                      ))}
+                      {independentGrades.length === 0 && "—"}
+                    </TableCell>
+                    <TableCell>
+                      {controlGrades.map((g, i) => (
+                        <span key={i}>{g.grade} </span>
+                      ))}
+                      {controlGrades.length === 0 && "—"}
+                    </TableCell>
+                    <TableCell>
+                      {calculateFinalGrade([...regularGrades, ...independentGrades, ...controlGrades])}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Paper>
@@ -221,23 +268,33 @@ const StudentDashboard = () => {
                 <TableCell>Предмет</TableCell>
                 <TableCell>Тема</TableCell>
                 <TableCell>Дата</TableCell>
+                <TableCell>Оценка</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {assignments.map(assignment => (
-                <TableRow key={assignment.id}>
-                  <TableCell>
-                    {assignment.type === 'independent' 
-                      ? 'Самостоятельная работа' 
-                      : 'Контрольная работа'}
-                  </TableCell>
-                  <TableCell>{assignment.subjectName}</TableCell>
-                  <TableCell>{assignment.topic}</TableCell>
-                  <TableCell>
-                    {new Date(assignment.date).toLocaleDateString('ru-RU')}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {assignments.map(assignment => {
+                const grade = assessmentGrades.find(
+                  ag => ag.assessmentId === assignment.id
+                );
+
+                return (
+                  <TableRow key={assignment.id}>
+                    <TableCell>
+                      {assignment.type === 'independent' 
+                        ? 'Самостоятельная работа' 
+                        : 'Контрольная работа'}
+                    </TableCell>
+                    <TableCell>{assignment.subjectName}</TableCell>
+                    <TableCell>{assignment.topic}</TableCell>
+                    <TableCell>
+                      {new Date(assignment.date).toLocaleDateString('ru-RU')}
+                    </TableCell>
+                    <TableCell>
+                      {grade ? grade.grade : "Нет оценки"}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Paper>

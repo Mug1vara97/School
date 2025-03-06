@@ -119,5 +119,29 @@ namespace Server.Controllers
                 return StatusCode(500, $"Ошибка загрузки данных студента: {ex.Message}");
             }
         }
+        [HttpGet("students/{studentId}/assessment-grades")]
+        public IActionResult GetAssessmentGradesByStudent(int studentId)
+        {
+            var assessmentGrades = _context.AssessmentGrades
+                .Include(ag => ag.Assessment)
+                .ThenInclude(a => a.Lesson)
+                .ThenInclude(l => l.Subject)
+                .Where(ag => ag.StudentId == studentId)
+                .Select(ag => new
+                {
+                    ag.Id,
+                    ag.AssessmentId,
+                    AssessmentType = ag.Assessment.Type == "independent"
+                        ? "Самостоятельная работа"
+                        : "Контрольная работа",
+                    ag.Assessment.Topic,
+                    SubjectName = ag.Assessment.Lesson.Subject.Name,
+                    ag.Grade,
+                    Date = ag.Assessment.Lesson.Date.ToString("yyyy-MM-ddTHH:mm:ss"),
+                })
+                .ToList();
+
+            return Ok(assessmentGrades);
+        }
     }
 }

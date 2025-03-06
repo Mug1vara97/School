@@ -196,5 +196,129 @@ namespace Server.Controllers
                 return StatusCode(500, $"Ошибка при загрузке заданий: {ex.Message}");
             }
         }
+
+        [HttpGet("assignments/teacher/{teacherId}")]
+        public IActionResult GetAssignmentsByTeacher(int teacherId)
+        {
+            try
+            {
+                var assignments = _context.Assessments
+                    .Include(a => a.Class)
+                    .Include(a => a.Lesson)
+                        .ThenInclude(l => l.Subject)
+                    .Where(a => a.TeacherId == teacherId)
+                    .Select(a => new
+                    {
+                        a.Id,
+                        a.Type,
+                        a.Topic,
+                        ClassName = a.Class.Name,
+                        SubjectName = a.Lesson.Subject.Name,
+                        Date = a.Lesson.Date.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    })
+                    .ToList();
+
+                return Ok(assignments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ошибка при загрузке заданий: {ex.Message}");
+            }
+        }
+
+        [HttpPost("assessments/grades")]
+        public async Task<IActionResult> AddAssessmentGrade([FromBody] AddAssessmentGradeRequest request)
+        {
+            try
+            {
+                var student = await _context.Students.FindAsync(request.StudentId);
+                var assessment = await _context.Assessments.FindAsync(request.AssessmentId);
+
+                if (student == null || assessment == null)
+                {
+                    return NotFound("Студент или задание не найдены.");
+                }
+
+                var assessmentGrade = new AssessmentGrade
+                {
+                    StudentId = request.StudentId,
+                    AssessmentId = request.AssessmentId,
+                    Grade = request.Grade,
+                };
+
+                _context.AssessmentGrades.Add(assessmentGrade);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    assessmentGrade.Id,
+                    assessmentGrade.StudentId,
+                    assessmentGrade.AssessmentId,
+                    assessmentGrade.Grade,
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ошибка при добавлении оценки: {ex.Message}");
+            }
+        }
+        [HttpGet("students")]
+        public IActionResult GetStudents()
+        {
+            try
+            {
+                var students = _context.Students
+                    .Include(s => s.User)
+                    .Select(s => new
+                    {
+                        s.Id,
+                        s.User.FirstName,
+                        s.User.LastName
+                    })
+                    .ToList();
+
+                return Ok(students);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ошибка при загрузке студентов: {ex.Message}");
+            }
+        }
+
+        [HttpGet("students/{studentId}/assessment-grades")]
+        public IActionResult GetAssessmentGradesByStudent(int studentId)
+        {
+            try
+            {
+                var assessmentGrades = _context.AssessmentGrades
+                    .Include(ag => ag.Assessment)
+                    .ThenInclude(a => a.Lesson)
+                    .ThenInclude(l => l.Subject)
+                    .Where(ag => ag.StudentId == studentId)
+                    .Select(ag => new
+                    {
+                        ag.Id,
+                        AssessmentType = ag.Assessment.Type == "independent" ? "Самостоятельная работа" : "Контрольная работа",
+                        ag.Assessment.Topic,
+                        SubjectName = ag.Assessment.Lesson.Subject.Name,
+                        ag.Grade,
+                        Date = ag.Assessment.Lesson.Date.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    })
+                    .ToList();
+
+                return Ok(assessmentGrades);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ошибка при загрузке оценок за задания: {ex.Message}");
+            }
+        }
+
+        public class AddAssessmentGradeRequest
+        {
+            public int StudentId { get; set; }
+            public int AssessmentId { get; set; }
+            public int Grade { get; set; }
+        }
     }
 }
